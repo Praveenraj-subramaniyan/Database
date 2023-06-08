@@ -1,0 +1,154 @@
+db.Users.insertMany([
+  {
+    "name": "John Doe",
+    "email": "johndoe@example.com",
+    "phone": "1234567890",
+    "role": "student",
+	"mentor_id":ObjectId("6481ca99611c8f040cb290c4"),
+  },
+  {
+    "name": "Jane Smith",
+    "email": "janesmith@example.com",
+    "phone": "9876543210",
+    "role": "student",
+	"mentor_id":ObjectId("6481ca99611c8f040cb290c4"),
+  }
+])
+
+db.Codekata.insertOne({
+  "user_id": ObjectId("6481c892611c8f040cb290bc"),
+  "date": ISODate("2023-10-05"),
+  "problems_solved": 5
+})
+
+db.Attendance.insertMany([
+  {
+    "user_id": ObjectId("6481c892611c8f040cb290bc"),
+    "date": ISODate("2023-10-10"),
+    "status": "present"
+  },
+  {
+    "user_id": ObjectId("6481c892611c8f040cb290bd"),
+    "date": ISODate("2023-10-15"),
+    "status": "absent"
+  }
+])
+
+db.Topics.insertOne({
+  "name": "Database Design"
+})
+
+db.Tasks.insertOne({
+  "user_id": ObjectId("6481c892611c8f040cb290bc"),
+  "date": ISODate("2023-10-20"),
+  "task_description": "Implement CRUD operations",
+  "status": "submitted"
+})
+
+db.Company_Drives.insertOne({
+  "date": ISODate("2023-10-25"),
+  "drive_description": "Company X Recruitment Drive"
+})
+
+db.Mentors.insertOne({
+  "name": "Alex Johnson",
+  "email": "alexjohnson@example.com",
+  "phone": "555-1234"
+})
+
+
+db.topics.aggregate([
+  {
+    $match: {
+      taught_date: {
+        $gte: ISODate("2023-10-01"),
+        $lte: ISODate("2023-10-31")
+      }
+    }
+  },
+  {
+    $lookup: {
+      from: "tasks",
+      localField: "_id",
+      foreignField: "topic_id",
+      as: "tasks"
+    }
+  }
+])
+
+
+db.company_drives.find({
+  date: {
+    $gte: ISODate("2020-10-15"),
+    $lte: ISODate("2020-10-31")
+  }
+})
+
+db.company_drives.aggregate([
+  {
+    $lookup: {
+      from: "users",
+      localField: "_id",
+      foreignField: "placement_drive_id",
+      as: "students"
+    }
+  }
+])
+
+db.codekata.aggregate([
+  {
+    $match: {
+      user_id: ObjectId("USER_ID")
+    }
+  },
+  {
+    $group: {
+      _id: "$user_id",
+      total_problems_solved: { $sum: "$problems_solved" }
+    }
+  }
+])
+
+db.mentors.aggregate([
+  {
+    $lookup: {
+      from: "users",
+      localField: "_id",
+      foreignField: "mentor_id",
+      as: "mentees"
+    }
+  },
+  {
+    $match: {
+      $expr: { $gt: [{ $size: "$mentees" }, 15] }
+    }
+  }
+])
+
+
+  {
+    $match: {
+      date: {
+        $gte: ISODate("2020-10-15"),
+        $lte: ISODate("2020-10-31")
+      },
+      status: "Absent"
+    }
+  },
+  {
+    $lookup: {
+      from: "tasks",
+      localField: "user_id",
+      foreignField: "user_id",
+      as: "tasks"
+    }
+  },
+  {
+    $match: {
+      "tasks.status": { $ne: "Submitted" }
+    }
+  },
+  {
+    $count: "users_count"
+  }
+])
